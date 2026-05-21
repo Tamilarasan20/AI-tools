@@ -31,7 +31,6 @@
       "@loraloop/helpers/*": ["libraries/helpers/src/*"],
       "@loraloop/nestjs-libraries/*": ["libraries/nestjs-libraries/src/*"],
       "@loraloop/react/*": ["libraries/react-shared-libraries/src/*"],
-      "@loraloop/plugins/*": ["libraries/plugins/src/*"],
       "@loraloop/orchestrator/*": ["apps/orchestrator/src/*"],
       "@loraloop/extension/*": ["apps/extension/src/*"]
     }
