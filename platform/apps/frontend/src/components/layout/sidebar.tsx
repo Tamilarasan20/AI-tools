@@ -16,6 +16,7 @@ const NAV_ITEMS = [
 
 const SETTINGS_ITEMS = [
   { href: '/settings', label: 'Profile', exact: true },
+  { href: '/settings/organization', label: 'Organization' },
   { href: '/settings/integrations', label: 'Integrations' },
   { href: '/settings/team', label: 'Team' },
   { href: '/settings/billing', label: 'Billing' },

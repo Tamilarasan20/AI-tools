@@ -56,11 +56,11 @@ export default function PostsPage() {
       ) : data?.data?.length ? (
         <div className="space-y-2">
           {data.data.map((post: any) => (
-            <div key={post.id} className="bg-[#16161f] border border-[#2a2a3e] rounded-xl p-4 flex items-start gap-4">
+            <div key={post.id} className="bg-[#16161f] border border-[#2a2a3e] rounded-xl p-4 flex items-start gap-4 hover:border-[#3a3a5e] transition-colors">
               <span className={`mt-0.5 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${POST_STATE_COLORS[post.state as PostState] || ''}`}>
                 {post.state}
               </span>
-              <div className="flex-1 min-w-0">
+              <Link href={`/posts/${post.id}`} className="flex-1 min-w-0 cursor-pointer">
                 <p className="text-sm text-gray-200">{truncate(post.content, 120)}</p>
                 <div className="flex items-center gap-3 mt-2">
                   <p className="text-xs text-gray-500">
@@ -72,16 +72,19 @@ export default function PostsPage() {
                     </p>
                   )}
                 </div>
-              </div>
+              </Link>
               <div className="flex items-center gap-2">
                 {post.state === 'DRAFT' || post.state === 'SCHEDULED' ? (
                   <button
-                    onClick={() => deleteMutation.mutate(post.id)}
+                    onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(post.id); }}
                     className="text-xs text-gray-500 hover:text-red-400 transition"
                   >
                     Delete
                   </button>
                 ) : null}
+                <Link href={`/posts/${post.id}`} className="text-xs text-gray-500 hover:text-white transition">
+                  Edit →
+                </Link>
               </div>
             </div>
           ))}

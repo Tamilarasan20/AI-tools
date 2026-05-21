@@ -14,6 +14,10 @@ jobs:
   lint-and-build:
     name: Lint & Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,21 +32,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: platform/pnpm-lock.yaml
 
       - name: Install dependencies
-        working-directory: platform
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Generate Prisma client
         working-directory: platform/packages/database
         run: pnpm exec prisma generate
 
-      - name: Build
-        working-directory: platform
+      - name: Build all packages
         run: pnpm turbo build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          DATABASE_URL: postgresql://placeholder/placeholder
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api
 
   deploy:
     name: Deploy to Railway
