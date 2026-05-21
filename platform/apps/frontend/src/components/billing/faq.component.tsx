@@ -14,11 +14,11 @@ const useFaqList = () => {
       ? [
           {
             title: t(
-              'faq_am_i_going_to_be_charged_by_postiz',
+              'faq_am_i_going_to_be_charged_by_loraloop',
               'Am I going to be charged by Loraloop?'
             ),
             description: t(
-              'faq_to_confirm_credit_card_information_postiz_will_hold',
+              'faq_to_confirm_credit_card_information_loraloop_will_hold',
               'To confirm credit card information Loraloop will hold $2 and release it immediately, you can cancel your subscription anytime from settings without talking to a person'
             ),
           },
@@ -26,24 +26,24 @@ const useFaqList = () => {
       : []),
     {
       title: t(
-        'faq_can_i_trust_postiz_gitroom',
-        `Can I trust ${isGeneral ? 'Loraloop' : 'Gitroom'}?`
+        'faq_can_i_trust_loraloop_loraloop',
+        `Can I trust ${isGeneral ? 'Loraloop' : 'Loraloop'}?`
       ),
       description: t(
-        'faq_postiz_gitroom_is_proudly_open_source',
+        'faq_loraloop_loraloop_is_proudly_open_source',
         `${
-          isGeneral ? 'Loraloop' : 'Gitroom'
+          isGeneral ? 'Loraloop' : 'Loraloop'
         } is proudly open-source! We believe in an ethical and transparent culture, meaning that ${
-          isGeneral ? 'Loraloop' : 'Gitroom'
-        } will live forever. You can check out the entire code or use it for personal projects. To view the open-source repository, <a href="https://github.com/gitroomhq/postiz-app" target="_blank" style="text-decoration: underline;">click here</a>.`
+          isGeneral ? 'Loraloop' : 'Loraloop'
+        } will live forever. You can check out the entire code or use it for personal projects. To view the open-source repository, <a href="https://github.com/Tamilarasan20/AI-tools" target="_blank" style="text-decoration: underline;">click here</a>.`
       ),
     },
     {
       title: t('faq_what_are_channels', 'What are channels?'),
       description: t(
-        'faq_postiz_gitroom_allows_you_to_schedule_posts',
+        'faq_loraloop_loraloop_allows_you_to_schedule_posts',
         `${
-          isGeneral ? 'Loraloop' : 'Gitroom'
+          isGeneral ? 'Loraloop' : 'Loraloop'
         } allows you to schedule your posts between different channels.
 A channel is a publishing platform where you can schedule your posts.
 For example, you can schedule your posts on X, Facebook, Instagram, TikTok, YouTube, Reddit, Linkedin, Dribbble, Threads and Pinterest.`

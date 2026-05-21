@@ -16,7 +16,7 @@ import { CreationMethodBadge } from '@loraloop/frontend/components/launches/crea
 
 dayjs.extend(utc);
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop' : 'Gitroom'} Preview`,
+  title: `${isGeneralServerSide() ? 'Loraloop' : 'Loraloop'} Preview`,
   description: '',
 };
 export default async function Auth(
@@ -58,7 +58,7 @@ export default async function Auth(
                 >
                   <div className="max-w-[55px]">
                     <SafeImage
-                      src={'/postiz.svg'}
+                      src={'/loraloop.svg'}
                       width={55}
                       height={55}
                       alt="Logo"

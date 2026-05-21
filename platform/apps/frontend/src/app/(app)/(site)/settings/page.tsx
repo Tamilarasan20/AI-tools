@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@loraloop/helpers/utils/is.general.server.side';
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop' : 'Gitroom'} Settings`,
+  title: `${isGeneralServerSide() ? 'Loraloop' : 'Loraloop'} Settings`,
   description: '',
 };
 export default async function Index(props: {

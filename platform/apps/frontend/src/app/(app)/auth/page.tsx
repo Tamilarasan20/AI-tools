@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { getT } from '@loraloop/react/translation/get.translation.service.backend';
 import { LoginWithOidc } from '@loraloop/frontend/components/auth/login.with.oidc';
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop' : 'Gitroom'} Register`,
+  title: `${isGeneralServerSide() ? 'Loraloop' : 'Loraloop'} Register`,
   description: '',
 };
 export default async function Auth(params: {searchParams: Promise<{provider: string}>}) {

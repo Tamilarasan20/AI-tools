@@ -1,6 +1,6 @@
 {
-	"name": "Postiz Dev Container",
-	"image": "localhost/postiz-devcontainer",
+	"name": "Loraloop Dev Container",
+	"image": "localhost/loraloop-devcontainer",
 	"features": {},
 	"customizations": {
 		"vscode": {

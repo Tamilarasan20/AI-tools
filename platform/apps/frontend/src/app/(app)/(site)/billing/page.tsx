@@ -3,7 +3,7 @@ import { BillingComponent } from '@loraloop/frontend/components/billing/billing.
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@loraloop/helpers/utils/is.general.server.side';
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop' : 'Gitroom'} Billing`,
+  title: `${isGeneralServerSide() ? 'Loraloop' : 'Loraloop'} Billing`,
   description: '',
 };
 export default async function Page() {

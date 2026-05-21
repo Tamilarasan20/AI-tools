@@ -4,7 +4,7 @@ import { AfterActivate } from '@loraloop/frontend/components/auth/after.activate
 import { isGeneralServerSide } from '@loraloop/helpers/utils/is.general.server.side';
 export const metadata: Metadata = {
   title: `${
-    isGeneralServerSide() ? 'Loraloop' : 'Gitroom'
+    isGeneralServerSide() ? 'Loraloop' : 'Loraloop'
   } - Activate your account`,
   description: '',
 };

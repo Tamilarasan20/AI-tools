@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import { isGeneralServerSide } from '@loraloop/helpers/utils/is.general.server.side';
 
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop' : 'Gitroom'} Admin Errors`,
+  title: `${isGeneralServerSide() ? 'Loraloop' : 'Loraloop'} Admin Errors`,
   description: '',
 };
 

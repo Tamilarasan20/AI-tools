@@ -3,7 +3,7 @@ import { LaunchesComponent } from '@loraloop/frontend/components/launches/launch
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@loraloop/helpers/utils/is.general.server.side';
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Loraloop Calendar' : 'Gitroom Launches'}`,
+  title: `${isGeneralServerSide() ? 'Loraloop Calendar' : 'Loraloop Launches'}`,
   description: '',
 };
 export default async function Index() {

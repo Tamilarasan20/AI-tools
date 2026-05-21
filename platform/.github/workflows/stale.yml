@@ -7,7 +7,7 @@ on:
 
 jobs:
   close-issues:
-    if: github.repository == 'gitroomhq/postiz-app'
+    if: github.repository == 'Tamilarasan20/AI-tools'
     runs-on: ubuntu-latest
     permissions:
       issues: write

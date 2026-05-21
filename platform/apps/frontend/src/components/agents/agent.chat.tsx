@@ -47,7 +47,7 @@ export const AgentChat: FC = () => {
       credentials="include"
       runtimeUrl={backendUrl + '/copilot/agent'}
       showDevConsole={false}
-      agent="postiz"
+      agent="loraloop"
       properties={{
         integrations: properties,
       }}
