@@ -1,11 +1,18 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 
 # next.js
-/.next/
+.next/
 /out/
+
+# turbo / nx
+.turbo/
+
+# build artifacts
+dist/
+tmp/
 
 # production
 /build
