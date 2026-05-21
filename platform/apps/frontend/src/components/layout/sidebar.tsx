@@ -12,7 +12,14 @@ const NAV_ITEMS = [
   { href: '/posts', label: 'Posts', icon: '📝' },
   { href: '/analytics', label: 'Analytics', icon: '📊' },
   { href: '/media', label: 'Media', icon: '🖼' },
-  { href: '/settings', label: 'Settings', icon: '⚙' },
+];
+
+const SETTINGS_ITEMS = [
+  { href: '/settings', label: 'Profile', exact: true },
+  { href: '/settings/integrations', label: 'Integrations' },
+  { href: '/settings/team', label: 'Team' },
+  { href: '/settings/billing', label: 'Billing' },
+  { href: '/settings/api-keys', label: 'API Keys' },
 ];
 
 export function Sidebar() {
@@ -31,7 +38,7 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 p-3 space-y-0.5">
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
@@ -50,6 +57,27 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        <div className="pt-3 mt-1 border-t border-[#2a2a3e]">
+          <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Settings</p>
+          {SETTINGS_ITEMS.map((item) => {
+            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm transition-colors',
+                  active
+                    ? 'text-brand-300 bg-brand-600/10'
+                    : 'text-gray-500 hover:text-white hover:bg-white/5',
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       <div className="p-4 border-t border-[#2a2a3e]">

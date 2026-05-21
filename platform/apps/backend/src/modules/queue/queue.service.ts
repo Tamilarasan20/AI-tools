@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue, JobCounts } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class QueueService {
   constructor(@InjectQueue('post-publishing') private readonly publishQueue: Queue) {}
 
-  async getJobCounts(): Promise<JobCounts> {
+  async getJobCounts() {
     return this.publishQueue.getJobCounts();
   }
 

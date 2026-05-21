@@ -6,10 +6,14 @@ const TAG_LENGTH = 16;
 
 function getKey(): Buffer {
   const keyHex = process.env.ENCRYPTION_KEY;
-  if (!keyHex || keyHex.length !== 64) {
-    throw new Error('ENCRYPTION_KEY must be a 64-character hex string (32 bytes)');
+  if (keyHex && keyHex.length === 64) {
+    return Buffer.from(keyHex, 'hex');
   }
-  return Buffer.from(keyHex, 'hex');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('ENCRYPTION_KEY must be a 64-character hex string in production');
+  }
+  // Dev-only fallback — set ENCRYPTION_KEY before production deployment
+  return Buffer.alloc(32, 0);
 }
 
 /**

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { BullModule } from '@nestjs/bull';
+import { BullMQModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -27,13 +27,13 @@ import { HealthModule } from './modules/health/health.module';
       envFilePath: ['.env.local', '.env'],
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
-    BullModule.forRootAsync({
+    BullMQModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const redisUrl = config.get<string>('redis.url') || 'redis://localhost:6379';
         const url = new URL(redisUrl);
         return {
-          redis: {
+          connection: {
             host: url.hostname,
             port: parseInt(url.port) || 6379,
             password: url.password || undefined,

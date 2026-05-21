@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaClient } from '@loraloop/database';
 import {
   CreatePostDto, UpdatePostDto, SchedulePostDto, PostsQueryDto, PLAN_LIMITS,
@@ -46,13 +46,12 @@ export class PostsService {
 
     if (dto.publishAt) {
       const delay = new Date(dto.publishAt).getTime() - Date.now();
-      const jobDelay = delay > 0 ? delay : 0;
       const job = await this.publishQueue.add(
         'publish-post',
         { postId: post.id },
-        { delay: jobDelay, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
+        { delay: delay > 0 ? delay : 0, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
       );
-      await this.prisma.post.update({ where: { id: post.id }, data: { jobId: job.id as string } });
+      await this.prisma.post.update({ where: { id: post.id }, data: { jobId: job.id } });
     }
 
     return post;
@@ -74,7 +73,11 @@ export class PostsService {
       this.prisma.post.findMany({
         where,
         include: {
-          postIntegrations: { include: { integration: { select: { platform: true, accountName: true, accountPicture: true } } } },
+          postIntegrations: {
+            include: {
+              integration: { select: { platform: true, accountName: true, accountPicture: true } },
+            },
+          },
           tags: { include: { tag: true } },
         },
         skip,
@@ -104,16 +107,17 @@ export class PostsService {
     if (post.state === 'PUBLISHED') throw new BadRequestException('Cannot edit a published post');
 
     if (post.jobId && dto.publishAt) {
-      await this.publishQueue.removeJobs(post.jobId);
+      const job = await this.publishQueue.getJob(post.jobId);
+      if (job) await job.remove();
     }
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.post.update({
         where: { id: postId },
         data: {
-          ...(dto.content && { content: dto.content }),
-          ...(dto.media && { media: dto.media as any }),
-          ...(dto.settings && { settings: dto.settings as any }),
+          ...(dto.content !== undefined && { content: dto.content }),
+          ...(dto.media !== undefined && { media: dto.media as any }),
+          ...(dto.settings !== undefined && { settings: dto.settings as any }),
           ...(dto.publishAt !== undefined && { publishAt: dto.publishAt ? new Date(dto.publishAt) : null }),
           state: dto.publishAt ? 'SCHEDULED' : 'DRAFT',
         },
@@ -135,16 +139,22 @@ export class PostsService {
   }
 
   async delete(orgId: string, postId: string) {
-    await this.getOne(orgId, postId);
-    const post = await this.prisma.post.findUnique({ where: { id: postId } });
-    if (post?.jobId) await this.publishQueue.removeJobs(post.jobId);
+    const post = await this.getOne(orgId, postId);
+    if (post.jobId) {
+      const job = await this.publishQueue.getJob(post.jobId);
+      if (job) await job.remove();
+    }
     await this.prisma.post.update({ where: { id: postId }, data: { deletedAt: new Date() } });
   }
 
   async schedule(orgId: string, postId: string, dto: SchedulePostDto) {
     const post = await this.getOne(orgId, postId);
     if (post.state === 'PUBLISHED') throw new BadRequestException('Post already published');
-    if (post.jobId) await this.publishQueue.removeJobs(post.jobId);
+
+    if (post.jobId) {
+      const job = await this.publishQueue.getJob(post.jobId);
+      if (job) await job.remove();
+    }
 
     const publishAt = new Date(dto.publishAt);
     const delay = publishAt.getTime() - Date.now();
@@ -157,7 +167,7 @@ export class PostsService {
 
     return this.prisma.post.update({
       where: { id: postId },
-      data: { publishAt, state: 'SCHEDULED', jobId: job.id as string },
+      data: { publishAt, state: 'SCHEDULED', jobId: job.id },
     });
   }
 
@@ -169,7 +179,10 @@ export class PostsService {
 
   async cancel(orgId: string, postId: string) {
     const post = await this.getOne(orgId, postId);
-    if (post.jobId) await this.publishQueue.removeJobs(post.jobId);
+    if (post.jobId) {
+      const job = await this.publishQueue.getJob(post.jobId);
+      if (job) await job.remove();
+    }
     return this.prisma.post.update({
       where: { id: postId },
       data: { state: 'CANCELED', jobId: null },
@@ -182,13 +195,17 @@ export class PostsService {
     const limits = PLAN_LIMITS[plan];
     if (limits.postsPerMonth === -1) return;
 
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
     const count = await this.prisma.post.count({
       where: { orgId, createdAt: { gte: monthStart }, deletedAt: null },
     });
     if (count >= limits.postsPerMonth) {
-      throw new ForbiddenException(`Monthly post limit (${limits.postsPerMonth}) reached. Upgrade your plan.`);
+      throw new ForbiddenException(
+        `Monthly post limit (${limits.postsPerMonth}) reached. Upgrade your plan.`,
+      );
     }
   }
 }
