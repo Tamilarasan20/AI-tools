@@ -91,10 +91,10 @@ export class MediaService {
   }
 
   private detectType(mimeType: string): MediaType {
-    if (mimeType.startsWith('image/gif')) return 'GIF';
-    if (mimeType.startsWith('image/')) return 'IMAGE';
-    if (mimeType.startsWith('video/')) return 'VIDEO';
-    return 'DOCUMENT';
+    if (mimeType.startsWith('image/gif')) return MediaType.GIF;
+    if (mimeType.startsWith('image/')) return MediaType.IMAGE;
+    if (mimeType.startsWith('video/')) return MediaType.VIDEO;
+    return MediaType.DOCUMENT;
   }
 
   private async checkStorageLimit(orgId: string) {

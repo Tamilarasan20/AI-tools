@@ -35,7 +35,7 @@ export default function BillingPage() {
   const currentPlan: SubscriptionPlan = (sub as any)?.plan || 'FREE';
   const limits = PLAN_LIMITS[currentPlan];
 
-  const plans: SubscriptionPlan[] = ['FREE', 'STARTER', 'PRO', 'BUSINESS'];
+  const plans: SubscriptionPlan[] = [SubscriptionPlan.FREE, SubscriptionPlan.STARTER, SubscriptionPlan.PRO, SubscriptionPlan.BUSINESS];
 
   return (
     <div className="p-6 max-w-4xl mx-auto">

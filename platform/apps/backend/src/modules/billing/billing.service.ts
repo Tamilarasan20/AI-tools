@@ -27,12 +27,18 @@ const PRICE_IDS: Record<SubscriptionPlan, Record<BillingPeriod, string | null>> 
 @Injectable()
 export class BillingService {
   private readonly prisma = new PrismaClient();
-  private readonly stripe: Stripe;
+  private stripe: Stripe | null = null;
 
   constructor(private readonly config: ConfigService) {
-    this.stripe = new Stripe(config.get<string>('stripe.secretKey') || '', {
-      apiVersion: '2024-12-18.acacia',
-    });
+    const secretKey = config.get<string>('stripe.secretKey');
+    if (secretKey) {
+      this.stripe = new Stripe(secretKey, { apiVersion: '2025-02-24.acacia' });
+    }
+  }
+
+  private getStripe(): Stripe {
+    if (!this.stripe) throw new BadRequestException('Billing is not configured on this server.');
+    return this.stripe;
   }
 
   async createCheckout(orgId: string, userId: string, dto: CreateCheckoutDto) {
@@ -45,7 +51,7 @@ export class BillingService {
     if (!customerId) {
       const org = await this.prisma.organization.findUnique({ where: { id: orgId } });
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      const customer = await this.stripe.customers.create({
+      const customer = await this.getStripe().customers.create({
         email: user?.email,
         name: org?.name,
         metadata: { orgId },
@@ -57,7 +63,7 @@ export class BillingService {
       });
     }
 
-    const session = await this.stripe.checkout.sessions.create({
+    const session = await this.getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: dto.period === 'LIFETIME' ? 'payment' : 'subscription',
@@ -73,7 +79,7 @@ export class BillingService {
     const sub = await this.prisma.subscription.findUnique({ where: { orgId } });
     if (!sub?.stripeCustomerId) throw new NotFoundException('No billing information found');
 
-    const session = await this.stripe.billingPortal.sessions.create({
+    const session = await this.getStripe().billingPortal.sessions.create({
       customer: sub.stripeCustomerId,
       return_url: `${this.config.get('app.frontendUrl')}/settings/billing`,
     });
@@ -89,7 +95,7 @@ export class BillingService {
     let event: Stripe.Event;
 
     try {
-      event = this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret!);
+      event = this.getStripe().webhooks.constructEvent(rawBody, signature, webhookSecret!);
     } catch {
       throw new BadRequestException('Invalid webhook signature');
     }
@@ -114,7 +120,7 @@ export class BillingService {
       }
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
-        const customer = await this.stripe.customers.retrieve(sub.customer as string);
+        const customer = await this.getStripe().customers.retrieve(sub.customer as string);
         const orgId = (customer as Stripe.Customer).metadata?.orgId;
         if (!orgId) break;
 
@@ -129,7 +135,7 @@ export class BillingService {
       }
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
-        const customer = await this.stripe.customers.retrieve(sub.customer as string);
+        const customer = await this.getStripe().customers.retrieve(sub.customer as string);
         const orgId = (customer as Stripe.Customer).metadata?.orgId;
         if (!orgId) break;
 
