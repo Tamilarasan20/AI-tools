@@ -1,0 +1,8 @@
+[build]
+dockerfilePath = "docker/Dockerfile.worker"
+
+[deploy]
+startCommand = "node apps/worker/dist/main.js"
+
+[[services]]
+name = "worker"

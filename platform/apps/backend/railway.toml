@@ -1,0 +1,10 @@
+[build]
+dockerfilePath = "docker/Dockerfile.backend"
+
+[deploy]
+startCommand = "sh -c 'cd packages/database && npx prisma migrate deploy && cd /app && node apps/backend/dist/main.js'"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+
+[[services]]
+name = "backend"

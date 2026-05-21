@@ -112,7 +112,8 @@ export class IntegrationsService {
         accountPicture = userRes.data.data.profile_image_url;
         break;
       }
-      case Platform.LINKEDIN_PERSONAL: {
+      case Platform.LINKEDIN_PERSONAL:
+      case Platform.LINKEDIN_PAGE: {
         const clientId = this.config.get<string>('oauth.linkedin.clientId');
         const clientSecret = this.config.get<string>('oauth.linkedin.clientSecret');
         const tokenRes = await axios.post(
@@ -122,11 +123,69 @@ export class IntegrationsService {
         accessToken = tokenRes.data.access_token;
         if (tokenRes.data.expires_in) tokenExpiry = new Date(Date.now() + tokenRes.data.expires_in * 1000);
 
-        const profileRes = await axios.get('https://api.linkedin.com/v2/me', {
-          headers: { Authorization: `Bearer ${accessToken}` },
+        if (platform === Platform.LINKEDIN_PAGE) {
+          const pagesRes = await axios.get('https://api.linkedin.com/v2/organizationalEntityAcls', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: { q: 'roleAssignee', role: 'ADMINISTRATOR', state: 'APPROVED' },
+          });
+          const page = pagesRes.data?.elements?.[0];
+          if (!page) throw new BadRequestException('No LinkedIn Pages found for this account');
+          const pageUrn = page.organizationalTarget as string;
+          accountId = pageUrn.split(':').pop()!;
+          const pageRes = await axios.get(`https://api.linkedin.com/v2/organizations/${accountId}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: { projection: '(id,localizedName,logoV2(original~:playableStreams))' },
+          });
+          accountName = pageRes.data.localizedName;
+          accountPicture = pageRes.data.logoV2?.['original~']?.elements?.[0]?.identifiers?.[0]?.identifier;
+        } else {
+          const profileRes = await axios.get('https://api.linkedin.com/v2/me', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          accountId = profileRes.data.id;
+          accountName = `${profileRes.data.localizedFirstName} ${profileRes.data.localizedLastName}`;
+        }
+        break;
+      }
+      case Platform.INSTAGRAM:
+      case Platform.FACEBOOK: {
+        const appId = this.config.get<string>('oauth.meta.appId');
+        const appSecret = this.config.get<string>('oauth.meta.appSecret');
+
+        const shortTokenRes = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+          params: { client_id: appId, client_secret: appSecret, redirect_uri: callbackUrl, code },
         });
-        accountId = profileRes.data.id;
-        accountName = `${profileRes.data.localizedFirstName} ${profileRes.data.localizedLastName}`;
+        const shortToken = shortTokenRes.data.access_token;
+
+        const longTokenRes = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+          params: { grant_type: 'fb_exchange_token', client_id: appId, client_secret: appSecret, fb_exchange_token: shortToken },
+        });
+        accessToken = longTokenRes.data.access_token;
+        if (longTokenRes.data.expires_in) tokenExpiry = new Date(Date.now() + longTokenRes.data.expires_in * 1000);
+
+        if (platform === Platform.INSTAGRAM) {
+          const meRes = await axios.get('https://graph.facebook.com/v18.0/me', {
+            params: { fields: 'id,name,accounts{instagram_business_account,name,access_token}', access_token: accessToken },
+          });
+          const page = meRes.data.accounts?.data?.find((p: any) => p.instagram_business_account);
+          if (!page) throw new BadRequestException('No Instagram Business Account linked to this Facebook Page');
+          const igId = page.instagram_business_account.id;
+          const igRes = await axios.get(`https://graph.facebook.com/v18.0/${igId}`, {
+            params: { fields: 'id,username,profile_picture_url', access_token: accessToken },
+          });
+          accountId = igRes.data.id;
+          accountName = igRes.data.username;
+          accountPicture = igRes.data.profile_picture_url;
+        } else {
+          const pagesRes = await axios.get('https://graph.facebook.com/v18.0/me/accounts', {
+            params: { access_token: accessToken },
+          });
+          const page = pagesRes.data?.data?.[0];
+          if (!page) throw new BadRequestException('No Facebook Pages found for this account');
+          accessToken = page.access_token;
+          accountId = page.id;
+          accountName = page.name;
+        }
         break;
       }
       default: {

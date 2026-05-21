@@ -54,7 +54,10 @@ export class PostsService {
       await this.prisma.post.update({ where: { id: post.id }, data: { jobId: job.id } });
     }
 
-    return post;
+    return this.prisma.post.findUnique({
+      where: { id: post.id },
+      include: { postIntegrations: true, tags: { include: { tag: true } } },
+    });
   }
 
   async list(orgId: string, query: PostsQueryDto) {

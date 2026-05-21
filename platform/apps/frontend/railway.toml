@@ -1,0 +1,10 @@
+[build]
+dockerfilePath = "docker/Dockerfile.frontend"
+
+[deploy]
+startCommand = "node apps/frontend/server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 30
+
+[[services]]
+name = "frontend"

@@ -30,4 +30,4 @@ COPY --from=builder /app/apps/backend/package.json ./apps/backend/
 USER nestjs
 EXPOSE 3001
 
-CMD ["node", "apps/backend/dist/main.js"]
+CMD ["sh", "-c", "cd /app/packages/database && npx prisma migrate deploy && cd /app && node apps/backend/dist/main.js"]
