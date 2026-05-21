@@ -1,0 +1,13 @@
+{
+  "name": "@loraloop/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

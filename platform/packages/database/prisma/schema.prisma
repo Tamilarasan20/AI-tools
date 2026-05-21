@@ -1,0 +1,463 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────── ENUMS ───────────────
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUAL
+  LIFETIME
+}
+
+enum Platform {
+  TWITTER
+  LINKEDIN_PERSONAL
+  LINKEDIN_PAGE
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  YOUTUBE
+  REDDIT
+  PINTEREST
+  DISCORD
+  SLACK
+  BLUESKY
+  MASTODON
+  THREADS
+  TELEGRAM
+  GOOGLE_MY_BUSINESS
+}
+
+enum PostState {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  GIF
+  DOCUMENT
+}
+
+enum NotificationType {
+  POST_PUBLISHED
+  POST_FAILED
+  TEAM_INVITE
+  BILLING_UPDATE
+  SYSTEM
+}
+
+// ─────────────── USER & AUTH ───────────────
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String
+  avatar        String?
+  passwordHash  String?
+  provider      AuthProvider @default(LOCAL)
+  providerId    String?
+  emailVerified Boolean      @default(false)
+  verifyToken   String?      @unique
+  resetToken    String?      @unique
+  resetExpiry   DateTime?
+  isSuperAdmin  Boolean      @default(false)
+  timezone      String       @default("UTC")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+
+  orgMembers    OrgMember[]
+  notifications Notification[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@index([providerId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ─────────────── ORGANIZATION ───────────────
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logo        String?
+  website     String?
+  description String?
+  timezone    String    @default("UTC")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  members       OrgMember[]
+  integrations  Integration[]
+  posts         Post[]
+  media         Media[]
+  tags          Tag[]
+  apiKeys       ApiKey[]
+  subscription  Subscription?
+  webhooks      Webhook[]
+  autoPosts     AutoPost[]
+  notifications Notification[]
+  aiUsages      AiUsage[]
+
+  @@index([slug])
+}
+
+model OrgMember {
+  id          String   @id @default(cuid())
+  orgId       String
+  userId      String
+  role        OrgRole  @default(MEMBER)
+  inviteEmail String?
+  inviteToken String?  @unique
+  accepted    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+  @@index([inviteToken])
+}
+
+// ─────────────── INTEGRATIONS ───────────────
+
+model Integration {
+  id             String    @id @default(cuid())
+  orgId          String
+  platform       Platform
+  accountId      String
+  accountName    String
+  accountPicture String?
+  accessToken    String    // AES-256 encrypted
+  refreshToken   String?   // AES-256 encrypted
+  tokenExpiry    DateTime?
+  credentials    Json?     // platform-specific extras
+  postingTimes   Json?     // allowed posting windows
+  disabled       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  org              Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  postIntegrations PostIntegration[]
+  analytics        IntegrationAnalytics[]
+  autoPosts        AutoPost[]
+
+  @@unique([orgId, platform, accountId])
+  @@index([orgId])
+  @@index([platform])
+}
+
+// ─────────────── POSTS ───────────────
+
+model Post {
+  id           String    @id @default(cuid())
+  orgId        String
+  content      String    @db.Text
+  media        Json?     // array of { id, url, type }
+  state        PostState @default(DRAFT)
+  publishAt    DateTime?
+  publishedAt  DateTime?
+  errorMessage String?
+  settings     Json?     // per-integration overrides
+  isThread     Boolean   @default(false)
+  threadOrder  Int?
+  parentId     String?
+  jobId        String?   // BullMQ job ID
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  org              Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  postIntegrations PostIntegration[]
+  tags             PostTag[]
+  parent           Post?             @relation("PostThread", fields: [parentId], references: [id])
+  children         Post[]            @relation("PostThread")
+
+  @@index([orgId])
+  @@index([state])
+  @@index([publishAt])
+  @@index([orgId, state])
+  @@index([orgId, publishAt])
+}
+
+model PostIntegration {
+  id             String    @id @default(cuid())
+  postId         String
+  integrationId  String
+  state          PostState @default(DRAFT)
+  platformPostId String?
+  platformUrl    String?
+  errorMessage   String?
+  platformData   Json?     // platform-specific post metadata
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, integrationId])
+  @@index([integrationId])
+  @@index([state])
+}
+
+// ─────────────── MEDIA ───────────────
+
+model Media {
+  id        String    @id @default(cuid())
+  orgId     String
+  name      String
+  url       String
+  key       String    // storage key (R2/S3)
+  type      MediaType
+  mimeType  String
+  size      Int       // bytes
+  width     Int?
+  height    Int?
+  duration  Float?    // video duration in seconds
+  thumbnail String?
+  alt       String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([type])
+}
+
+// ─────────────── TAGS ───────────────
+
+model Tag {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  posts PostTag[]
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+// ─────────────── ANALYTICS ───────────────
+
+model IntegrationAnalytics {
+  id            String   @id @default(cuid())
+  integrationId String
+  date          DateTime @db.Date
+  followers     Int?
+  following     Int?
+  impressions   Int?
+  engagements   Int?
+  likes         Int?
+  comments      Int?
+  shares        Int?
+  reach         Int?
+  clicks        Int?
+  profileViews  Int?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([integrationId, date])
+  @@index([integrationId])
+  @@index([date])
+}
+
+// ─────────────── BILLING ───────────────
+
+model Subscription {
+  id                String           @id @default(cuid())
+  orgId             String           @unique
+  plan              SubscriptionPlan @default(FREE)
+  period            BillingPeriod    @default(MONTHLY)
+  stripeCustomerId  String?          @unique
+  stripeSubId       String?          @unique
+  stripePriceId     String?
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean          @default(false)
+  trialEnd          DateTime?
+  isLifetime        Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubId])
+}
+
+// ─────────────── API KEYS ───────────────
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  orgId     String
+  name      String
+  keyHash   String    @unique
+  keyPrefix String    // first 8 chars for display
+  lastUsed  DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([keyHash])
+}
+
+// ─────────────── WEBHOOKS ───────────────
+
+model Webhook {
+  id        String   @id @default(cuid())
+  orgId     String
+  url       String
+  secret    String
+  events    String[] // ['post.published', 'post.failed', ...]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org        Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([orgId])
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  event      String
+  payload    Json
+  statusCode Int?
+  response   String?
+  attempts   Int      @default(0)
+  success    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId])
+  @@index([success])
+}
+
+// ─────────────── AUTO POST ───────────────
+
+model AutoPost {
+  id            String    @id @default(cuid())
+  orgId         String
+  integrationId String
+  name          String
+  rssUrl        String?
+  template      String?   @db.Text
+  active        Boolean   @default(true)
+  lastFetched   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integration Integration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+// ─────────────── NOTIFICATIONS ───────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  orgId     String?
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  org  Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+}
+
+// ─────────────── AI USAGE ───────────────
+
+model AiUsage {
+  id        String   @id @default(cuid())
+  orgId     String
+  type      String   // 'text' | 'image' | 'video'
+  tokens    Int?
+  credits   Int      @default(1)
+  model     String?
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([createdAt])
+}

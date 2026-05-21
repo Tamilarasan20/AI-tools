@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV", "DATABASE_URL", "REDIS_URL", "JWT_SECRET",
+    "FRONTEND_URL", "BACKEND_URL", "NEXT_PUBLIC_API_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "dev": { "cache": false, "persistent": true },
+    "start": { "cache": false, "persistent": true },
+    "lint": {},
+    "test": { "outputs": ["coverage/**"] },
+    "db:generate": { "cache": false },
+    "db:migrate": { "cache": false },
+    "db:migrate:dev": { "cache": false },
+    "db:studio": { "cache": false, "persistent": true },
+    "db:seed": { "cache": false }
+  }
+}
