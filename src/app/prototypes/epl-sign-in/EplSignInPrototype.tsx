@@ -284,12 +284,15 @@ function Otp({ go, back, phone, email, purpose }: ViewProps & { purpose: OtpPurp
   const valid = code.length === 6;
 
   const viaEmail = purpose === 'email-signup' || purpose === 'email-recover' || purpose === 'apple-recover';
+  // Existing-user happy path: title switches once a code is typed (Figma 26785:68865 → 26785:70304).
   const title =
-    purpose === 'signup' || purpose === 'login'
-      ? 'Verify your account'
-      : purpose === 'apple-recover'
-        ? 'Check your email'
-        : 'Enter verification code';
+    purpose === 'login' && code.length > 0
+      ? 'Enter verification code'
+      : purpose === 'signup' || purpose === 'login'
+        ? 'Verify your account'
+        : purpose === 'apple-recover'
+          ? 'Check your email'
+          : 'Enter verification code';
 
   const description =
     purpose === 'email-signup'
