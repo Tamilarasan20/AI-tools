@@ -93,6 +93,8 @@ export function TextField({
   inputMode,
   autoFocus,
   maxLength,
+  autoComplete,
+  onEnter,
 }: {
   label: string;
   value: string;
@@ -101,6 +103,8 @@ export function TextField({
   inputMode?: 'text' | 'numeric' | 'tel' | 'email';
   autoFocus?: boolean;
   maxLength?: number;
+  autoComplete?: string;
+  onEnter?: () => void;
 }) {
   const filled = value.length > 0;
   return (
@@ -118,6 +122,8 @@ export function TextField({
         value={value}
         autoFocus={autoFocus}
         maxLength={maxLength}
+        autoComplete={autoComplete}
+        onKeyDown={(e) => e.key === 'Enter' && onEnter?.()}
         aria-label={label}
         onChange={(e) => onChange(e.target.value)}
         className={`${FONT_EPILOGUE} absolute inset-x-[15px] bottom-[6px] top-[19px] bg-transparent text-[16px] leading-none text-[#262626] outline-none`}

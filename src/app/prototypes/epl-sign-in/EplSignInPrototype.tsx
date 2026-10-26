@@ -86,14 +86,25 @@ export const FLOWS: { label: string; group: string; screen: Screen }[] = [
 
 export default function EplSignInPrototype() {
   const [stack, setStack] = useState<Screen[]>([{ id: 'onboarding' }]);
+  // Bumped on every navigation so each visit mounts a fresh screen (no stale input).
+  const [visit, setVisit] = useState(0);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState(EXISTING_NAME);
 
   const screen = stack[stack.length - 1];
-  const go = (s: Screen) => setStack((st) => [...st, s]);
-  const back = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st));
-  const reset = (s: Screen = { id: 'onboarding' }) => setStack(s.id === 'onboarding' ? [s] : [{ id: 'onboarding' }, s]);
+  const go = (s: Screen) => {
+    setStack((st) => [...st, s]);
+    setVisit((v) => v + 1);
+  };
+  const back = () => {
+    setStack((st) => (st.length > 1 ? st.slice(0, -1) : st));
+    setVisit((v) => v + 1);
+  };
+  const reset = (s: Screen = { id: 'onboarding' }) => {
+    setStack(s.id === 'onboarding' ? [s] : [{ id: 'onboarding' }, s]);
+    setVisit((v) => v + 1);
+  };
 
   return (
     <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-center">
@@ -101,7 +112,7 @@ export default function EplSignInPrototype() {
       <div className="shrink-0 rounded-[52px] bg-[#1b1b1b] p-[12px] shadow-2xl">
         <div className="relative h-[812px] w-[375px] overflow-hidden rounded-[40px] bg-[#efefe7]">
           <ScreenView
-            key={stack.length + screen.id}
+            key={visit}
             screen={screen}
             go={go}
             back={back}
@@ -314,7 +325,9 @@ function Otp({ go, back, phone, email, purpose }: ViewProps & { purpose: OtpPurp
             value={code}
             onChange={(v) => setCode(digits(v).slice(0, 6))}
             inputMode="numeric"
+            autoComplete="one-time-code"
             autoFocus
+            onEnter={() => valid && next()}
           />
           <ResendCode />
         </div>
