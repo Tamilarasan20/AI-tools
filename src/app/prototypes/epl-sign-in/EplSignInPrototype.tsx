@@ -310,7 +310,8 @@ function Otp({ go, back, phone, email, purpose }: ViewProps & { purpose: OtpPurp
       case 'email-signup':
         return go({ id: 'sign-up', collect: 'mobile' });
       case 'login':
-        return go({ id: 'home', returning: true });
+        // Existing-user happy path ends on the same home screen as new-user sign up.
+        return go({ id: 'home', returning: false });
       case 'email-recover':
       case 'apple-recover':
         return go({ id: 'welcome-back' });
@@ -530,7 +531,7 @@ function Lookup({ go, back, setName }: ViewProps) {
         <PillButton
           disabled={!valid}
           onClick={() => {
-            setName(first.trim() || RECOVERED_NAME);
+            setName(RECOVERED_NAME);
             go({ id: 'welcome-back' });
           }}
         >
@@ -579,14 +580,15 @@ function Home({ name, returning, sheet }: ViewProps & { returning: boolean; shee
       <AppHeader points={returning} />
       <div className="absolute left-0 top-[45px] h-[532px] w-[375px]">
         <img src={asset('hero-home.png')} alt="Burrito bowls" width={375} height={532} className="h-[532px] w-[375px] object-cover" />
-        <div className="absolute inset-x-0 bottom-0 h-[242px] bg-gradient-to-b from-transparent to-black/50" />
-        <div className="absolute inset-x-0 top-[330px] flex flex-col items-center gap-[22px]">
+        <div className="absolute inset-x-0 bottom-0 h-[300px] bg-gradient-to-b from-transparent to-black/60" />
+        <div className="absolute inset-x-0 top-[330px] flex flex-col items-center gap-[14px]">
           <h1
-            className={`${FONT_BARLOW} text-center text-[38px] font-bold uppercase leading-[42px] text-white [text-shadow:0_2px_6px_rgba(0,0,0,0.35)]`}
+            className={`${FONT_BARLOW} text-center text-[38px] font-bold uppercase leading-[40px] text-white [text-shadow:0_2px_6px_rgba(0,0,0,0.35)]`}
           >
             {returning ? 'Welcome back' : 'Welcome'}
             <br />
-            {name}
+            {/* Recovered-account home reads "Welcome back Alana" in Figma (26785:67698). */}
+            {returning ? EXISTING_NAME : name}
           </h1>
           <PillButton variant="light" className="!w-[313px]">
             Start Order
