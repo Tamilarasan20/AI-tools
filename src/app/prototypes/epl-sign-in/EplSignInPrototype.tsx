@@ -59,7 +59,7 @@ const prettyPhone = (v: string) => {
   const d = digits(v);
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 10)}`;
 };
-const maskPhone = (v: string) => `(***) ***-${digits(v).slice(-4) || '9999'}`;
+const maskPhone = (v: string) => `(***) ***-${digits(v).slice(-4) || '3456'}`;
 const maskEmail = (v: string) => {
   const [user, domain] = v.split('@');
   if (!user || !domain) return 'ele***@gmail.com';

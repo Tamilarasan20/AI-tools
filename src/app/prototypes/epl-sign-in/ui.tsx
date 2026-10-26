@@ -213,7 +213,7 @@ export function ResendCode() {
   }, [left]);
   if (left > 0) {
     return (
-      <p className={`${FONT_BARLOW} text-[16px] font-bold uppercase leading-none text-[#989898]`}>
+      <p className={`${FONT_BARLOW} text-[16px] font-bold uppercase leading-none text-[#696969]`}>
         Send a new code in {Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}
       </p>
     );
