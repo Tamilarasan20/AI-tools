@@ -339,7 +339,12 @@ function Otp({ go, back, phone, email, purpose }: ViewProps & { purpose: OtpPurp
         <div className="flex flex-col items-center gap-6">
           <Rule />
           <p className={`${FONT_BARLOW} text-[16px] font-bold uppercase leading-4 text-[#262626]`}>
-            Not getting code? <TextLink onClick={() => go({ id: 'find-account' })}>Try another way</TextLink>
+            Not getting code?{' '}
+            {purpose === 'signup' ? (
+              <TextLink onClick={() => go({ id: 'enter-email' })}>Try email</TextLink>
+            ) : (
+              <TextLink onClick={() => go({ id: 'find-account' })}>Try another way</TextLink>
+            )}
           </p>
         </div>
       )}
