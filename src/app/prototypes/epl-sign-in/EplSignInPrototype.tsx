@@ -60,11 +60,12 @@ const prettyPhone = (v: string) => {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6, 10)}`;
 };
 const maskPhone = (v: string) => `(***) ***-${digits(v).slice(-4) || '3456'}`;
-const maskEmail = (v: string) => {
-  const [user, domain] = v.split('@');
-  if (!user || !domain) return 'ele***@gmail.com';
-  return `${user.slice(0, 3)}***@${domain}`;
+// Sign-up screens mask as "ele***@gmail.com"; recovery screens as "mar...@gmail.com".
+const maskEmail = (v: string, fallback = 'ele@gmail.com', gap = '***') => {
+  const [user, domain] = (isEmailish(v) ? v : fallback).split('@');
+  return `${user.slice(0, 3)}${gap}@${domain}`;
 };
+const isEmailish = (v: string) => /^[^@\s]+@[^@\s]+$/.test(v);
 const isEmail = (v: string) => /^\S+@\S+\.\S+$/.test(v);
 
 export const FLOWS: { label: string; group: string; screen: Screen }[] = [
@@ -243,7 +244,7 @@ function Onboarding({ go, phone, setPhone, setName }: ViewProps) {
           </div>
         </div>
         <div className="py-[12px] text-center">
-          <TextLink onClick={() => go({ id: 'enter-email' })}>Looking for another way to sign-in?</TextLink>
+          <TextLink onClick={() => go({ id: 'find-account' })}>Looking for another way to sign-in?</TextLink>
         </div>
         <OrDivider />
         <div className="py-[14px] text-center">
@@ -294,9 +295,9 @@ function Otp({ go, back, phone, email, purpose }: ViewProps & { purpose: OtpPurp
     purpose === 'email-signup'
       ? `We just texted a 6-digit code to ${maskEmail(email)}, Please enter the code and verify your account to continue.`
       : viaEmail
-        ? `Enter the 6-digit code sent to ${maskEmail(email || 'mar@gmail.com')}`
+        ? `Enter the 6-digit code sent to ${maskEmail(email, purpose === 'apple-recover' ? 'abc@gmail.com' : 'mar@gmail.com', '...')}`
         : purpose === 'add-mobile'
-          ? `Enter the 6-digit code sent to ${maskPhone(phone)}`
+          ? 'We just texted a 6-digit code to your mobile number, Please enter the code and verify your account to continue.'
           : `We just texted a 6-digit code to ${maskPhone(phone)}, Please enter the code and verify your account to continue.`;
 
   const next = () => {
