@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPL – Recover Funnel 1 vs 2 prototype</title>
+<style>
+  :root { --cream:#efeee6; --ink:#1f1f1f; --red:#e8290b; --grey:#9a9a9a; --line:#cfcdc2; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Barlow","Helvetica Neue",Arial,sans-serif; background:#a9a9a9; color:var(--ink); }
+  header.top { background:#111; color:#fff; padding:14px 24px; display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+  header.top h1 { font-size:18px; margin:0; letter-spacing:.5px; }
+  .scenarios { display:flex; gap:8px; flex-wrap:wrap; }
+  .scenarios button { background:#2b2b2b; color:#fff; border:1px solid #555; border-radius:20px; padding:7px 14px; cursor:pointer; font:inherit; font-size:13px; }
+  .scenarios button.on { background:#fff; color:#111; }
+  .goal { width:100%; font-size:13px; opacity:.85; }
+  main { display:flex; flex-wrap:wrap; justify-content:center; gap:40px; padding:28px 16px; }
+  .col { width:375px; }
+  .col h2 { background:#000; color:#fff; border-radius:8px; padding:10px 14px; font-size:16px; margin:0 0 12px; }
+  .stats { display:flex; gap:8px; margin-bottom:12px; }
+  .stat { flex:1; background:#fff; border-radius:8px; padding:8px; text-align:center; }
+  .stat b { display:block; font-size:24px; line-height:1; }
+  .stat span { font-size:11px; text-transform:uppercase; color:#555; }
+  .path { font-size:12px; background:#ffffffaa; border-radius:8px; padding:8px; min-height:44px; margin-top:12px; }
+  .reset { margin-top:8px; font:inherit; font-size:12px; cursor:pointer; background:none; border:1px solid #333; border-radius:6px; padding:4px 10px; }
+  /* phone */
+  .phone { width:375px; height:812px; background:var(--cream); border-radius:36px; overflow:hidden; position:relative; box-shadow:0 8px 30px #0005; display:flex; flex-direction:column; }
+  .status { height:38px; padding:12px 24px 0; font-size:13px; font-weight:600; display:flex; justify-content:space-between; flex:none; }
+  .status.red { background:var(--red); color:#fff; }
+  .appbar { height:46px; padding:0 19px; display:flex; align-items:center; justify-content:space-between; flex:none; border-bottom:1px solid var(--line); }
+  .logo { font-family:"Brush Script MT",cursive; font-style:italic; color:var(--red); font-size:22px; font-weight:700; }
+  .screen { flex:1; padding:14px 16px; overflow:auto; }
+  .back { background:none; border:0; font:inherit; font-size:12px; font-weight:600; cursor:pointer; padding:10px 0; }
+  h3 { text-transform:uppercase; font-size:24px; line-height:1.1; margin:14px 0 8px; font-weight:800; }
+  p.sub { font-size:12px; margin:0 0 16px; line-height:1.35; }
+  input { width:100%; height:38px; border:1px solid var(--ink); background:#fff; padding:0 10px; font:inherit; font-size:11px; text-transform:uppercase; margin-bottom:12px; border-radius:2px; }
+  .btn { display:block; width:100%; height:36px; border-radius:18px; font:inherit; font-size:11px; font-weight:700; text-transform:uppercase; cursor:pointer; margin-bottom:10px; border:1.5px solid var(--ink); }
+  .btn.pri { background:var(--ink); color:#fff; }
+  .btn.sec { background:transparent; color:var(--ink); }
+  .btn.dis { background:var(--grey); border-color:var(--grey); color:#fff; }
+  .link { display:block; text-align:center; background:none; border:0; font:inherit; font-size:11px; font-weight:700; text-transform:uppercase; text-decoration:underline; cursor:pointer; margin:12px auto; color:var(--ink); }
+  .fine { font-size:10px; text-align:center; color:#444; margin:8px 0; line-height:1.4; }
+  hr { border:0; border-top:1px solid var(--line); margin:14px 0; }
+  .hero { height:180px; margin:0 -16px; background:radial-gradient(circle at 35% 60%,#c98a3d 0 28%,#7a4a1c 29% 45%,#e8b04a 46%); position:relative; }
+  .hero + .sp { height:14px; }
+  .banner { background:var(--red); color:#fff; text-align:center; padding:6px 20px 14px; margin:0 -16px; margin-top:-14px; }
+  .banner h4 { margin:0; font-size:22px; line-height:1.15; font-weight:700; }
+  .welcome { background:linear-gradient(#5a7a2b,#2e4a14); margin:-14px -16px 0; height:300px; color:#ffffff99; display:flex; align-items:center; justify-content:center; text-align:center; font-size:28px; font-weight:800; text-transform:uppercase; }
+  .sheet { background:#fff; margin:0 -16px; padding:22px 16px; text-align:center; position:absolute; bottom:0; left:16px; right:16px; margin:0; border-radius:0; }
+  .sheet { left:0; right:0; }
+  .tag { font-size:10px; background:#fff3b0; border:1px dashed #b59b00; padding:4px 8px; margin:8px 0; border-radius:4px; }
+  /* verdict */
+  section.verdict { max-width:1000px; margin:0 auto 60px; background:#fff; border-radius:12px; padding:24px 28px; }
+  section.verdict h2 { margin-top:0; }
+  table { border-collapse:collapse; width:100%; font-size:14px; margin:12px 0 20px; }
+  th,td { border-bottom:1px solid #ddd; padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#f5f5f5; }
+  .win { color:#0a7a2f; font-weight:700; }
+  .rec { background:#eaf7ee; border-left:4px solid #0a7a2f; padding:12px 16px; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>EPL · Recover Funnel prototype</h1>
+  <div class="scenarios" id="scenarios"></div>
+  <div class="goal" id="goal"></div>
+</header>
+
+<main>
+  <div class="col" id="col1"></div>
+  <div class="col" id="col2"></div>
+</main>
+
+<section class="verdict">
+  <h2>Which funnel is the better experience?</h2>
+  <p>Heuristic comparison from the Figma flows, not user-tested. Use the scenarios above to feel the difference, and the live tap/screen counters to measure it.</p>
+  <table>
+    <tr><th>Criterion</th><th>Funnel 1</th><th>Funnel 2</th></tr>
+    <tr><td>Returning user, different number</td><td>Continue → "couldn't find" error → Find my account → Send code. <b>3 taps</b>, but the user types a number that fails and hits an error first.</td><td class="win">Find my account → Use email → Send code. <b>3 taps</b>, no failed lookup and no number to type.</td></tr>
+    <tr><td>User who signed up with Apple</td><td>Use email → "I signed up with Apple" (2 taps), but Apple is a small link on a different screen than the primary path.</td><td class="win">Find my account → I signed up with Apple (2 taps), shown as a peer option.</td></tr>
+    <tr><td>New user, no account</td><td class="win">Continue → fail screen → Create new account. One clear decision point.</td><td>Same path, but the extra "Find my account" link on the first screen competes with Continue and can send a new user down a recovery path (the "one more click" risk noted in the file).</td></tr>
+    <tr><td>Dead ends</td><td>Fail screen offers Find / Create / Edit number. Good safety net.</td><td>Recovery choice screen has no "Create account" exit except Back. Weaker for a confused new user.</td></tr>
+    <tr><td>Method choice</td><td>Email first, Apple hidden in a link; recovery methods are discovered one at a time.</td><td class="win">Email, Apple and "find with info" shown together, so the user picks the one that matches their memory.</td></tr>
+    <tr><td>Screen count on the recovery path</td><td>Onboarding, error, email, verify, welcome back, done</td><td>Onboarding, choose method, email, verify, welcome back, done (same length; the error screen is replaced by a choice screen)</td></tr>
+  </table>
+  <div class="rec">
+    <b>Recommendation: Funnel 2, with Funnel 1's safety net.</b>
+    Tap counts are about equal, so the gain is quality, not speed: recovery users skip a failed lookup and an error message, and see every recovery method up front. Keep the "couldn't find account" screen (with Create new account) for anyone who does type a number that doesn't match, and add a "Create new account" link to the Funnel 2 choice screen so it is not a dead end. To protect new-user conversion, soften the entry link (for example "Already have an account? Find it") and A/B test sign-up completion rate against Funnel 1.
+  </div>
+</section>
+
+<script>
+const SCENARIOS = {
+  returning: { label:'Returning user (different number)', goal:'Goal: get back into my existing account. I joined with another phone number.' },
+  apple:     { label:'Signed up with Apple',               goal:'Goal: get back into my account. I originally used Sign in with Apple.' },
+  newuser:   { label:'New user',                           goal:'Goal: I have no account and want to sign up.' },
+};
+let scenario = 'returning';
+
+const phoneFrame = (inner, {red=false}={}) => `
+  <div class="phone">
+    <div class="status ${red?'red':''}"><span>9:41</span><span>●●● ▮</span></div>
+    ${inner}
+  </div>`;
+const appbar = `<div class="appbar"><span class="logo">El Pollo Loco</span><span>🛍</span></div>`;
+const back = `<button class="back" data-go="__back">‹ Back</button>`;
+
+/* ---- shared screens ---- */
+const S = {
+  onboarding1: () => phoneFrame(`
+    <div class="banner"><h4>Sign In or Join to<br>earn rewards</h4></div>
+    <div class="hero"></div>
+    <div class="screen" style="padding-top:14px">
+      <input placeholder="Mobile number*">
+      <button class="btn pri" data-go="notfound1" data-tap>Continue</button>
+      <p class="fine">By tapping, I accept the El Pollo Loco Privacy policy and Terms of Use.</p>
+      <button class="link" data-go="email1" data-tap>Use email</button>
+      <hr>
+      <button class="link" data-go="done" data-tap>Continue as guest</button>
+    </div>`, {red:true}),
+
+  onboarding2: () => phoneFrame(`
+    <div class="banner"><h4>Sign In or Join to<br>earn rewards</h4></div>
+    <div class="hero"></div>
+    <div class="screen" style="padding-top:14px">
+      <input placeholder="Mobile number*">
+      <button class="btn pri" data-go="notfound" data-tap>Continue</button>
+      <p class="fine">By tapping, I accept the El Pollo Loco Privacy policy and Terms of Use.</p>
+      <button class="link" data-go="choice" data-tap>Find my account</button>
+      <hr>
+      <button class="link" data-go="done" data-tap>Continue as guest</button>
+    </div>`, {red:true}),
+
+  notfound: (f) => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>We couldn't find account (555) 019-2284</h3>
+      <p class="sub">Joined before with a different number (or) signed up with Facebook, Apple or Google?</p>
+      <button class="btn pri" data-go="${f==1?'email':'choice'}" data-tap>Find my account</button>
+      <button class="btn sec" data-go="finishNew" data-tap>Create new account</button>
+      <hr><button class="link" data-go="__start" data-tap>Edit number</button>
+    </div>`),
+
+  /* Funnel 2 recovery method chooser */
+  choice: () => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>Find my account</h3>
+      <p class="sub">Joined before with a different number (or) signed up with Facebook, Apple or Google?</p>
+      <button class="btn pri" data-go="email" data-tap>Use email</button>
+      <button class="btn sec" data-go="apple" data-tap>I signed up with Apple</button>
+      <button class="link" data-go="finishInfo" data-tap>Find account with info</button>
+      <hr><p class="fine">Having trouble getting into your account?<br>Contact EPL at +1 (923) 872 8024</p>
+    </div>`),
+
+  email: () => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>Find my account</h3>
+      <p class="sub">Use email you signed up with. We'll send a code there.</p>
+      <input placeholder="Enter email ID*">
+      <button class="btn pri" data-go="verify" data-tap>Send verification code</button>
+      <hr><button class="link" data-go="apple" data-tap>I signed up with Apple</button>
+      <p class="fine">Having trouble getting into your account?<br>Contact EPL at +1 (923) 872 8024</p>
+    </div>`),
+
+  apple: () => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>Apple email</h3>
+      <p class="sub">If you selected "Hide My Email," Apple created a private email for you, like abc123@privaterelay.appleid.com.<br><br>Enter it or you can find this address in Settings › Apple ID › Sign-in &amp; Security.</p>
+      <input placeholder="Apple relay email *">
+      <button class="btn pri" data-go="verify" data-tap>Send verification code</button>
+      <hr><button class="link" data-go="finishInfo" data-tap>I can't find it</button>
+      <p class="fine">Verify with Name &amp; Recent order</p>
+    </div>`),
+
+  verify: () => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>Check your email</h3>
+      <p class="sub">Enter the 6-digit code sent to E...@gmail.com</p>
+      <input placeholder="Enter verification code">
+      <p class="fine" style="text-align:left;text-decoration:underline">Resend in 0:30s</p>
+      <button class="btn pri" data-go="welcome" data-tap>Verify and continue</button>
+      <hr><p class="fine">Didn't receive a code?</p>
+      <button class="link" data-go="finishInfo" data-tap>Try a different way</button>
+    </div>`),
+
+  welcome: () => phoneFrame(`${appbar}<div class="screen">${back}
+      <h3>Welcome back, Maria!</h3>
+      <p class="sub">Add your phone number so signing in is a just tap away next time.</p>
+      <input placeholder="Mobile number*">
+      <button class="btn pri" data-go="done" data-tap>Send a code</button>
+      <button class="link" data-go="done" data-tap>Not now</button>
+    </div>`),
+
+  finishNew: () => finish('Just a few details and you\'re in.', 'Create account'),
+  finishInfo: () => finish('Just a few details and we\'ll find your account.', 'Find my account'),
+
+  done: () => phoneFrame(`
+    <div class="welcome">Welcome back<br>Alana</div>
+    <div class="sheet">
+      <h3 style="margin:0 0 6px">You're in!</h3>
+      <p class="sub">Your 1,359 points and saved orders are right where you left.</p>
+      <button class="btn pri" data-go="__done">Start order</button>
+    </div>`),
+};
+function finish(sub, cta) {
+  return phoneFrame(`${appbar}<div class="screen">${back}
+      <h3 style="text-align:center">Finish signing up</h3>
+      <p class="sub" style="text-align:center">${sub}</p>
+      <input placeholder="First name*"><input placeholder="Last name*"><input placeholder="Approximate order date*">
+      <button class="btn pri" data-go="done" data-tap>${cta}</button>
+      <p class="fine">Still having trouble getting into your account?<br>Contact EPL at +1 (923) 872 8024</p>
+    </div>`);
+}
+
+/* ---- funnel definitions ---- */
+const FUNNELS = {
+  1: { title:'Recover Funnel 1', start:'onboarding1', render(id){
+        if (id==='onboarding1') return S.onboarding1();
+        if (id==='notfound1' || id==='notfound') return S.notfound(1);
+        if (id==='email1') return S.email();
+        return S[id](1); } },
+  2: { title:'Recover Funnel 2', start:'onboarding2', render(id){
+        if (id==='onboarding2') return S.onboarding2();
+        if (id==='notfound') return S.notfound(2);
+        return S[id](2); } },
+};
+const LABEL = { onboarding1:'Sign in', onboarding2:'Sign in', notfound1:'Not found', notfound:'Not found', choice:'Choose method', email:'Email', email1:'Email', apple:'Apple email', verify:'Verify code', welcome:'Welcome back', finishNew:'Create account', finishInfo:'Find with info', done:'Signed in' };
+
+class Funnel {
+  constructor(n, el){ this.n=n; this.el=el; this.reset(); }
+  reset(){ this.stack=[FUNNELS[this.n].start]; this.taps=0; this.screens=1; this.log=[LABEL[this.stack[0]]]; this.done=false; this.draw(); }
+  go(target, isTap){
+    if (target==='__back'){ if(this.stack.length>1){ this.stack.pop(); this.taps++; this.log.push('‹ back'); } }
+    else if (target==='__start'){ this.stack=[FUNNELS[this.n].start]; this.taps++; this.screens++; this.log.push('edit number'); }
+    else if (target==='__done'){ this.taps++; this.done=true; this.log.push('✔ start order'); }
+    else { this.stack.push(target); if(isTap) this.taps++; this.screens++; this.log.push(LABEL[target]); if(target==='done') this.finished=true; }
+    this.draw();
+  }
+  draw(){
+    const cur = this.stack[this.stack.length-1];
+    this.el.innerHTML = `
+      <h2>${FUNNELS[this.n].title}</h2>
+      <div class="stats">
+        <div class="stat"><b>${this.taps}</b><span>Taps</span></div>
+        <div class="stat"><b>${this.screens}</b><span>Screens seen</span></div>
+        <div class="stat"><b>${cur==='done'?'✔':'…'}</b><span>${cur==='done'?'Reached goal':'In progress'}</span></div>
+      </div>
+      ${FUNNELS[this.n].render(cur)}
+      <div class="path"><b>Path:</b> ${this.log.join(' → ')}</div>
+      <button class="reset">↺ Restart</button>`;
+    this.el.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => this.go(b.dataset.go, b.hasAttribute('data-tap'))));
+    this.el.querySelector('.reset').addEventListener('click', () => this.reset());
+  }
+}
+const f1 = new Funnel(1, document.getElementById('col1'));
+const f2 = new Funnel(2, document.getElementById('col2'));
+
+const sc = document.getElementById('scenarios');
+function drawScenarios(){
+  sc.innerHTML = Object.entries(SCENARIOS).map(([k,v]) => `<button class="${k===scenario?'on':''}" data-k="${k}">${v.label}</button>`).join('');
+  document.getElementById('goal').textContent = SCENARIOS[scenario].goal + '  Try to reach "Signed in" (or "Create account") in both funnels and compare the counters.';
+  sc.querySelectorAll('button').forEach(b => b.onclick = () => { scenario=b.dataset.k; drawScenarios(); f1.reset(); f2.reset(); });
+}
+drawScenarios();
+</script>
+</body>
+</html>
